@@ -30,6 +30,8 @@ func main() {
 		AccessToken:  os.Getenv("MASTODON_ACCESS_TOKEN"),
 	})
 
+	go handleMessages()
+
 	http.HandleFunc("/ws", handleConnections)
 
 	// Start the server
@@ -86,6 +88,20 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			log.Printf("error: %v", err)
 			delete(clients, ws)
 			break
+		}
+	}
+}
+
+func handleMessages() {
+	for {
+		msg := <-broadcast
+		for client := range clients {
+			err := client.WriteJSON(msg)
+			if err != nil {
+				log.Printf("error: %v", err)
+				client.Close()
+				delete(clients, client)
+			}
 		}
 	}
 }
