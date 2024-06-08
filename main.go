@@ -4,13 +4,17 @@ import (
 	"context"
 	"fmt"
 	"log"
-
+	"net/http"
 	"os"
-	"sync"
 
+	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 	"github.com/mattn/go-mastodon"
 )
+
+var clients = make(map[*websocket.Conn]bool)
+var broadcast = make(chan mastodon.Status)
+var upgrader = websocket.Upgrader{}
 
 func main() {
 	err := godotenv.Load()
@@ -26,6 +30,11 @@ func main() {
 		AccessToken:  os.Getenv("MASTODON_ACCESS_TOKEN"),
 	})
 
+	go handleMessages()
+
+	http.HandleFunc("/ws", handleConnections)
+
+	// Start the server
 	log.Println("Server started on :8000")
 	go func() {
 
@@ -39,6 +48,7 @@ func main() {
 			switch e := event.(type) {
 			case *mastodon.UpdateEvent:
 				fmt.Printf("New status: %s\n", e.Status.Content)
+				broadcast <- *e.Status
 			case *mastodon.DeleteEvent:
 				fmt.Printf("Status deleted: %s\n", e.ID)
 			case *mastodon.NotificationEvent:
@@ -47,14 +57,51 @@ func main() {
 				fmt.Printf("Unknown event: %T\n", e)
 			}
 		}
+		/*switch event := event.(type) {
+		case *mastodon.UpdateEvent:
+			broadcast <- *event.Status
+		}*/
 
 		if err != nil {
 			log.Fatal(err)
 		}
 	}()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	wg.Wait()
+	err = http.ListenAndServe(":8000", nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
+}
 
+func handleConnections(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ws.Close()
+	clients[ws] = true
+
+	for {
+		var msg mastodon.Status
+		err := ws.ReadJSON(&msg)
+		if err != nil {
+			log.Printf("error: %v", err)
+			delete(clients, ws)
+			break
+		}
+	}
+}
+
+func handleMessages() {
+	for {
+		msg := <-broadcast
+		for client := range clients {
+			err := client.WriteJSON(msg)
+			if err != nil {
+				log.Printf("error: %v", err)
+				client.Close()
+				delete(clients, client)
+			}
+		}
+	}
 }
