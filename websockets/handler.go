@@ -20,7 +20,6 @@ var upgrader = websocket.Upgrader{}
 var allowedOrigins = make(map[string]bool)
 
 func CheckOrigin(r *http.Request) bool {
-
 	// check origin : allows all incomming connections for now (for tests to run)
 	// Should have a list of not-allowed connections to filter
 	origin := r.Header.Get("Origin")
