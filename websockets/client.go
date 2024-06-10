@@ -18,7 +18,7 @@ func ReceiveMessages(websocketConn *websocket.Conn) {
 			clients.mutex.Lock()
 			delete(clients.clientMap, websocketConn)
 			clients.mutex.Unlock()
-			log.Println("connection deleted! current number of connections: " + strconv.Itoa((len(clients.m))))
+			log.Println("connection deleted! current number of connections: " + strconv.Itoa((len(clients.clientMap))))
 			break
 		}
 	}
@@ -33,6 +33,7 @@ func PublishMessage() {
 				log.Printf("error: %v", err)
 				client.Close()
 				delete(clients.clientMap, client)
+				log.Println("connection deleted! current number of connections: " + strconv.Itoa((len(clients.clientMap))))
 			}
 		}
 	}
