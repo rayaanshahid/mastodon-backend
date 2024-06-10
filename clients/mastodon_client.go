@@ -26,6 +26,7 @@ func (c *MastodonClient) StreamingPublic(ctx context.Context, public bool) error
 	for event := range ch {
 		switch e := event.(type) {
 		case *mastodon.UpdateEvent:
+			// only catering the Update Event for now
 			websockets.Broadcast <- *e.Status
 		case *mastodon.DeleteEvent:
 			//log.Printf("Status deleted: %s\n", e.ID)

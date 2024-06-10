@@ -15,26 +15,35 @@ This project streams public Mastodon posts in real-time and displays them on a w
 
 1. Clone the repository:
 
-git clone https://github.com/yourusername/mastodon-live-stream.git cd mastodon-live-stream
+git clone https://github.com/rayaanshahid/mastodon-backend.git cd mastodon-backend
 
 2. Set up environment variables:
 
-- Create a `.env` file in the backend directory and add your Mastodon access token:
+- Create a `.env` file in the backend directory and add your Mastodon access details:
   ```
   MASTODON_ACCESS_TOKEN=your_access_token_here
+  MASTODON_CLIENT_ID=your_client_id_here
+  MASTODON_CLIENT_SECRET=your_client_secret_here
+  SERVER_PORT=8000
   ```
 
 3. Build and run the application using Docker Compose:
 
-docker-compose up --build
+docker-compose up -d
 
-4. Open your browser and navigate to `http://localhost:3000` to see the live Mastodon posts.
+4. Run the frontend by following the Readme.md for that project
+
+5. Open your browser and navigate to `http://localhost:3000` to see the live Mastodon posts.
 
 ## Running Tests
 
 To run the backend tests, use the following command:
 
-docker-compose run backend go test ./...
+```
+cd tests
+
+go test -v
+```
 
 ## Architecture
 
@@ -47,7 +56,7 @@ Both services are containerized using Docker and orchestrated with Docker Compos
 
 ## CI/CD
 
-Continuous Integration is set up using GitHub Actions to automatically build and test the application on every push to the main branch.
+Continuous Integration will be set up using GitHub Actions to automatically build and test the application on every push to the main branch.
 
 ## Contributing
 

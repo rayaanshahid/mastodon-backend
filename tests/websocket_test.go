@@ -36,6 +36,7 @@ func TestWebSocketConnection(t *testing.T) {
 }
 
 func TestMain(t *testing.M) {
+	// this test tests the mastodon client + the websocket connection
 	// Load .env file
 	err := godotenv.Load("../.env")
 	if err != nil {
