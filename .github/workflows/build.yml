@@ -22,7 +22,3 @@ jobs:
           go build -o main .
           cd tests
           go test ./...
-
-      - name: Build Docker images
-        run: |
-          docker-compose build
