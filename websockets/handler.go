@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/mastodon-backend/config"
 	"github.com/mastodon-backend/utils"
 )
 
@@ -24,6 +25,22 @@ func CheckOrigin(r *http.Request) bool {
 	// Should have a list of not-allowed connections to filter
 	origin := r.Header.Get("Origin")
 	return allowedOrigins[origin]
+}
+
+func StartWebSocket(config config.Config) error {
+	// Set up Websocket
+	go PublishMessage()
+
+	http.HandleFunc("/ws", HandleConnections)
+
+	// Start the server
+	log.Println("Server started on :" + config.ServerPort)
+	err := http.ListenAndServe(":"+config.ServerPort, nil)
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
 }
 
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
